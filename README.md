@@ -11,7 +11,8 @@ on a Deno server with async handlers. You may encounter interferences, as the
 `performance` instance and entries are shared for all the concurrently executing
 handlers on the same isolate.
 
-The following code poses a problem:
+The following code poses a problem because the same names might be used for 
+diferent requests if they overlap in time:
 
 ```ts
 Deno.serve(async (_req: Request => {
@@ -31,7 +32,7 @@ remove the entries of another request.
 #### Solution
 
 We can avoid the problem by making a new `ScopedPerformance` instance for each
-request, which will automatically take care of prefixing the marks/measures
+request, which will automatically take care of prefixing the mark/measure
 names with a unique prefix:
 
 ```ts
@@ -55,13 +56,17 @@ scoped entries:
 ```ts
 import { ScopedPerformance } from './mod.ts';
 
+// Let's make a mark in the global original `performance` instance
 performance.mark('global start');
 
+// Then proced to make an scoped instance and some scoped marks
 const scoped = new ScopedPerformance();
 scoped.mark('start');
 scoped.measure('total', 'start');
 
+// When retrieving the entrios of the scoped instance, we just get those...
 console.log(scoped.getEntries());
+
 /*
 [
   PerformanceMark {
@@ -81,7 +86,9 @@ console.log(scoped.getEntries());
 ]
 */
 
+// The global `performance` instace obviusly contains all the marks ...
 console.log(performance.getEntries());
+
 /*
 [
   PerformanceMark {
