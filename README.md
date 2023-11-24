@@ -1,6 +1,5 @@
 # ScopedPerformance
-
-[![codecov](https://codecov.io/gh/esroyo/scoped-performance/graph/badge.svg?token=)](https://codecov.io/gh/esroyo/scoped-performance)
+[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/scoped_performance/mod.ts) [![codecov](https://codecov.io/gh/esroyo/scoped-performance/graph/badge.svg?token=OVVLMQFJ3A)](https://codecov.io/gh/esroyo/scoped-performance)
 
 A Performance API (User timing) wrapper to avoid mark/measure name collisions.
 
