@@ -6,9 +6,14 @@ A Performance API (User timing) wrapper to avoid mark/measure name collisions.
 
 #### Problem
 
-When working with the [User Timing Performance API](https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/User_timing) on a Deno server with async handlers. You may encounter interferences, as the `performance` instance and entries are shared for all the concurrently executing handlers on the same isolate.
+When working with the
+[User Timing Performance API](https://developer.mozilla.org/en-US/docs/Web/API/Performance_API/User_timing)
+on a Deno server with async handlers. You may encounter interferences, as the
+`performance` instance and entries are shared for all the concurrently executing
+handlers on the same isolate.
 
 The following code poses a problem:
+
 ```ts
 Deno.serve(async (_req: Request => {
   performance.mark('start');
@@ -21,12 +26,14 @@ Deno.serve(async (_req: Request => {
 });
 ```
 
-Using `clearMarks()`/`clearMeasures()` does not help; It is even worse as it may remove the entries of another request.
-
+Using `clearMarks()`/`clearMeasures()` does not help; It is even worse as it may
+remove the entries of another request.
 
 #### Solution
 
-We can avoid the problem by making a new `ScopedPerformance` instance for each request, which will automatically take care of prefixing the marks/measures names with a unique prefix:
+We can avoid the problem by making a new `ScopedPerformance` instance for each
+request, which will automatically take care of prefixing the marks/measures
+names with a unique prefix:
 
 ```ts
 import { ScopedPerformance } from './mod.ts';
@@ -43,7 +50,8 @@ Deno.serve(async (_req: Request => {
 });
 ```
 
-Executing `getEntries()` in the ScopedPerformance instance will only return the scoped entries:
+Executing `getEntries()` in the ScopedPerformance instance will only return the
+scoped entries:
 
 ```ts
 import { ScopedPerformance } from './mod.ts';

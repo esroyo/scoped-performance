@@ -1,11 +1,11 @@
 export class ScopedPerformance implements Performance {
-
     public readonly randomId: string;
     public readonly glue = '::' as const;
 
     constructor(
         protected performance: Performance = globalThis.performance,
-        protected randomIdGenerator: (() => string) = globalThis.crypto.randomUUID.bind(globalThis.crypto),
+        protected randomIdGenerator: () => string = globalThis.crypto.randomUUID
+            .bind(globalThis.crypto),
     ) {
         this.randomId = this.randomIdGenerator();
     }
@@ -34,11 +34,17 @@ export class ScopedPerformance implements Performance {
      * Stores the `DOMHighResTimeStamp` duration between two marks along with the
      * associated name (auto scoped).
      */
-    measure(measureName: string, startMarkOrOptions?: string | PerformanceMeasureOptions, endMark?: string): PerformanceMeasure {
+    measure(
+        measureName: string,
+        startMarkOrOptions?: string | PerformanceMeasureOptions,
+        endMark?: string,
+    ): PerformanceMeasure {
         return this.performance.measure(
             this.prefixName(measureName),
-            // @ts-ignore
-            typeof startMarkOrOptions === 'string' ? this.prefixName(startMarkOrOptions): startMarkOrOptions,
+            // @ts-ignore to avoid erroneous signature implementation on Deno side
+            typeof startMarkOrOptions === 'string'
+                ? this.prefixName(startMarkOrOptions)
+                : startMarkOrOptions,
             endMark ? this.prefixName(endMark) : undefined,
         );
     }
@@ -54,7 +60,7 @@ export class ScopedPerformance implements Performance {
      */
     clearMarks(markName?: string): void {
         if (markName) {
-           return this.performance.clearMarks(this.prefixName(markName));
+            return this.performance.clearMarks(this.prefixName(markName));
         }
         this.performance.getEntriesByType('mark').forEach(({ name }) => {
             if (this.isScopedName(name)) {
@@ -70,7 +76,7 @@ export class ScopedPerformance implements Performance {
      */
     clearMeasures(measureName?: string): void {
         if (measureName) {
-           return this.performance.clearMeasures(this.prefixName(measureName));
+            return this.performance.clearMeasures(this.prefixName(measureName));
         }
         this.performance.getEntriesByType('measure').forEach(({ name }) => {
             if (this.isScopedName(name)) {
@@ -80,27 +86,39 @@ export class ScopedPerformance implements Performance {
     }
 
     getEntries(): PerformanceEntryList {
-       return this.performance.getEntries().filter(({ name }) => this.isScopedName(name));
+        return this.performance.getEntries().filter(({ name }) =>
+            this.isScopedName(name)
+        );
     }
 
     getEntriesByType(type: string): PerformanceEntryList {
-       return this.performance.getEntriesByType(type).filter(({ name }) => this.isScopedName(name));
+        return this.performance.getEntriesByType(type).filter(({ name }) =>
+            this.isScopedName(name)
+        );
     }
 
     getEntriesByName(name: string, type?: string): PerformanceEntryList {
-       return this.performance.getEntriesByName(this.prefixName(name), type);
+        return this.performance.getEntriesByName(this.prefixName(name), type);
     }
-   
+
     toJSON() {
         return this.performance.toJSON();
     }
 
-    addEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | AddEventListenerOptions): void {
+    addEventListener(
+        type: string,
+        listener: EventListenerOrEventListenerObject | null,
+        options?: boolean | AddEventListenerOptions,
+    ): void {
         return this.performance.addEventListener(type, listener, options);
     }
-    
-    removeEventListener(type: string, listener: EventListenerOrEventListenerObject | null, options?: boolean | EventListenerOptions | undefined): void {
-       return this.performance.removeEventListener(type, listener, options);
+
+    removeEventListener(
+        type: string,
+        listener: EventListenerOrEventListenerObject | null,
+        options?: boolean | EventListenerOptions | undefined,
+    ): void {
+        return this.performance.removeEventListener(type, listener, options);
     }
 
     dispatchEvent(event: Event): boolean {
