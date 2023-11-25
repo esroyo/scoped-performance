@@ -1,6 +1,10 @@
 export class ScopedPerformance implements Performance {
     public readonly randomId: string;
     public readonly glue = '::' as const;
+    protected readonly prototypeMap = {
+        mark: PerformanceMark.prototype,
+        measure: PerformanceMeasure.prototype,
+    } as const;
 
     constructor(
         protected performance: Performance = globalThis.performance,
@@ -14,8 +18,21 @@ export class ScopedPerformance implements Performance {
         return `${this.randomId}${this.glue}${name}`;
     }
 
+    protected unprefixName(name: string): string {
+        return name.replace(this.prefixName(''), '');
+    }
+
     protected isScopedName(name: string): boolean {
         return name.startsWith(this.prefixName(''));
+    }
+
+    protected filterMap(entries: PerformanceEntryList): PerformanceEntryList {
+        return entries.filter(({ name }) => this.isScopedName(name)).map((
+            entry,
+        ) => Object.setPrototypeOf({
+            ...entry.toJSON(),
+            name: this.unprefixName(entry.name),
+        }, this.prototypeMap[entry.entryType as 'mark' | 'measure']));
     }
 
     /** Returns a timestamp representing the start of the performance measurement. */
@@ -86,19 +103,17 @@ export class ScopedPerformance implements Performance {
     }
 
     getEntries(): PerformanceEntryList {
-        return this.performance.getEntries().filter(({ name }) =>
-            this.isScopedName(name)
-        );
+        return this.filterMap(this.performance.getEntries());
     }
 
     getEntriesByType(type: string): PerformanceEntryList {
-        return this.performance.getEntriesByType(type).filter(({ name }) =>
-            this.isScopedName(name)
-        );
+        return this.filterMap(this.performance.getEntriesByType(type));
     }
 
     getEntriesByName(name: string, type?: string): PerformanceEntryList {
-        return this.performance.getEntriesByName(this.prefixName(name), type);
+        return this.filterMap(
+            this.performance.getEntriesByName(this.prefixName(name), type),
+        );
     }
 
     toJSON() {

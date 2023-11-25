@@ -3,12 +3,18 @@ import { assertEquals, assertSpyCallArg, spy } from '../dev_deps.ts';
 import { ScopedPerformance } from './scoped-performance.ts';
 
 Deno.test('ScopedPerformance', async (t) => {
+    // Spys on the original performance instance
     const markSpy = spy(performance, 'mark');
     const measureSpy = spy(performance, 'measure');
     const addEventListenerSpy = spy(performance, 'addEventListener');
     const removeEventListenerSpy = spy(performance, 'removeEventListener');
     const dispatchEventSpy = spy(performance, 'dispatchEvent');
-    const scopedPerf = new ScopedPerformance(performance, () => 'server');
+
+    // Two scoped instances
+    const scopedPerf = new ScopedPerformance(
+        performance,
+        () => 'server',
+    );
     const anotherScopedPerf = new ScopedPerformance(
         performance,
         () => 'client',
@@ -23,11 +29,31 @@ Deno.test('ScopedPerformance', async (t) => {
     });
 
     await t.step(
-        'should return only the entries corresponding to the given scope',
+        'should getEntries() of the given scope',
         () => {
             assertEquals(scopedPerf.getEntries().length, 1);
             assertEquals(anotherScopedPerf.getEntries().length, 1);
             assertEquals(performance.getEntries().length, 2);
+        },
+    );
+
+    await t.step(
+        'should return entries removing the internal scope from the names',
+        () => {
+            assertEquals(scopedPerf.getEntries()[0].name, 'my-mark-1');
+            assertEquals(anotherScopedPerf.getEntries()[0].name, 'my-mark-1');
+            assertEquals(performance.getEntries()[0].name, 'server::my-mark-1');
+            assertEquals(performance.getEntries()[1].name, 'client::my-mark-1');
+        },
+    );
+
+    await t.step(
+        'should return entries keeping the PerformanceMark prototype',
+        () => {
+            assertEquals(
+                scopedPerf.getEntries()[0] instanceof PerformanceMark,
+                true,
+            );
         },
     );
 
@@ -72,6 +98,35 @@ Deno.test('ScopedPerformance', async (t) => {
         assertEquals(anotherScopedPerf.getEntries().length, 1);
         assertEquals(performance.getEntries().length, 2);
     });
+
+    await t.step(
+        'should return entries removing the internal scope from the names',
+        () => {
+            assertEquals(scopedPerf.getEntries()[0].name, 'my-measure-1');
+            assertEquals(
+                anotherScopedPerf.getEntries()[0].name,
+                'my-measure-1',
+            );
+            assertEquals(
+                performance.getEntries()[0].name,
+                'server::my-measure-1',
+            );
+            assertEquals(
+                performance.getEntries()[1].name,
+                'client::my-measure-1',
+            );
+        },
+    );
+
+    await t.step(
+        'should return entries keeping the PerformanceMeasure prototype',
+        () => {
+            assertEquals(
+                scopedPerf.getEntries()[0] instanceof PerformanceMeasure,
+                true,
+            );
+        },
+    );
 
     await t.step(
         'should return the same toJSON() as injected performance',
