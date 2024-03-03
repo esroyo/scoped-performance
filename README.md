@@ -38,7 +38,7 @@ request, which will automatically take care of prefixing the mark/measure names
 with a unique prefix:
 
 ```ts
-import { ScopedPerformance } from 'https://deno.land/x/scoped_performance/mod.ts';
+import { ScopedPerformance } from 'jsr:@esroyo/scoped-performance';
 
 Deno.serve(async (_req: Request => {
   const scoped = new ScopedPerformance();
@@ -58,7 +58,7 @@ Executing `getEntries()` in the `ScopedPerformance` instance will only return
 the entries created with that instance:
 
 ```ts
-import { ScopedPerformance } from 'https://deno.land/x/scoped_performance/mod.ts';
+import { ScopedPerformance } from 'jsr:@esroyo/scoped-performance';
 
 // Let's make a mark in the global original `performance` instance
 performance.mark('global-start');

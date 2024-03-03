@@ -36,7 +36,7 @@ export class ScopedPerformance implements Performance {
     }
 
     /** Returns a timestamp representing the start of the performance measurement. */
-    get timeOrigin() {
+    get timeOrigin(): number {
         return this.performance.timeOrigin;
     }
 
@@ -66,7 +66,7 @@ export class ScopedPerformance implements Performance {
         );
     }
 
-    now() {
+    now(): number {
         return this.performance.now();
     }
 
@@ -116,7 +116,7 @@ export class ScopedPerformance implements Performance {
         );
     }
 
-    toJSON() {
+    toJSON(): any {
         return this.performance.toJSON();
     }
 

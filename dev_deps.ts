@@ -1,2 +1,2 @@
-export { assertEquals } from 'https://deno.land/std/testing/asserts.ts';
-export { assertSpyCallArg, spy } from 'https://deno.land/std/testing/mock.ts';
+export { assertEquals } from 'jsr:@std/testing@0.218.2/asserts';
+export { assertSpyCallArg, spy } from 'jsr:@std/testing@0.218.2/mock';
