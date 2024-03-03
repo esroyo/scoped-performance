@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [3.0.0](https://github.com/esroyo/scoped-performance/compare/v2.0.0...v3.0.0) (2024-03-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* adapt code to JSR
+
+* adapt code to JSR ([498fd4b](https://github.com/esroyo/scoped-performance/commit/498fd4b7b1f1b60b09b4fc2f6f3a2bcfda351ee7))
+
 ## [2.0.0](https://github.com/esroyo/scoped-performance/compare/v1.1.2...v2.0.0) (2023-11-25)
 
 
