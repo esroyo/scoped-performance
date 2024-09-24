@@ -1,9 +1,12 @@
 # ScopedPerformance
 
-[![deno doc](https://doc.deno.land/badge.svg)](https://doc.deno.land/https/deno.land/x/scoped_performance/mod.ts) [![codecov](https://codecov.io/gh/esroyo/scoped-performance/graph/badge.svg?token=OVVLMQFJ3A)](https://codecov.io/gh/esroyo/scoped-performance)
+
+[![JSR](https://jsr.io/badges/@esroyo/scoped-performance)](https://jsr.io/@esroyo/scoped-performance) [![JSR Score](https://jsr.io/badges/@esroyo/scoped-performance/score)](https://jsr.io/@esroyo/scoped-performance) [![codecov](https://codecov.io/gh/esroyo/scoped-performance/graph/badge.svg?token=OVVLMQFJ3A)](https://codecov.io/gh/esroyo/scoped-performance)
 
 Safely use the Performance API User timing features without fear of having name
 collisions with another concurrently running code.
+
+### Motivation
 
 #### Problem
 
@@ -121,4 +124,47 @@ console.log(performance.getEntries());
 }
 ]
 */
+```
+### Usage
+
+As of Deno [1.37.0 (2023-09-19)](https://github.com/denoland/deno/releases/tag/v1.37.0), it is recommended to use the `using` keyword to take advantage of [explicit resource management](https://github.com/tc39/proposal-explicit-resource-management). With this language feature, scoped performance entries will be cleared from the global `performance` instance once the scoped performance instance leaves scope, avoiding memory leaks.
+
+```ts
+import { ScopedPerformance } from 'jsr:@esroyo/scoped-performance';
+
+Deno.serve(async (_req: Request => {
+  using scoped = new ScopedPerformance();
+  scoped.mark('start');
+
+  // some async work here ...
+
+  const measureEntry = scoped.measure('total', 'start');
+
+  // once the handler has returned, scoped.clearMarks() and scoped.clearMeasures()
+  // will be executed, avoiding the continuous growth of global entries
+  return new Response(...);
+});
+```
+
+In case you are on an older version of Deno (or any other platform that does not support `using`) remember to explicitly call `clearMarks()` and `clearMeasures()` once access to the scoped instance is not needed:
+
+```ts
+import { ScopedPerformance } from 'jsr:@esroyo/scoped-performance';
+
+Deno.serve(async (_req: Request => {
+  const scoped = new ScopedPerformance();
+  scoped.mark('start');
+
+  // some async work here ...
+
+  const measureEntry = scoped.measure('total', 'start');
+
+  // ...
+
+  // Explicit tear down
+  scoped.clearMarks();
+  scoped.clearMeasures();
+
+  return new Response(...);
+});
 ```

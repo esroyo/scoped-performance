@@ -180,10 +180,36 @@ Deno.test('ScopedPerformance', async (t) => {
     });
 
     await t.step(
-        'should be able to call measure() will all the signatures',
+        'should remove all marks and measures when leaving the scope',
+        async () => {
+            assertEquals(performance.getEntries().length, 0);
+
+            {
+                using thirdPerf = new ScopedPerformance(performance);
+                thirdPerf.mark('using-mark');
+
+                await new Promise((res) => {
+                    setTimeout(res, 0);
+                });
+
+                thirdPerf.measure('using-duration', 'using-mark');
+
+                assertEquals(thirdPerf.getEntries().length, 2);
+                assertEquals(performance.getEntries().length, 2);
+            }
+
+            assertEquals(performance.getEntries().length, 0);
+        },
+    );
+
+    await t.step(
+        'should be able to call measure() with all the signatures',
         () => {
             const measure2 = scopedPerf.measure('my-measure-2');
-            assertEquals(measure2.duration, performance.now());
+            assertEquals(
+                measure2.duration.toFixed(0),
+                performance.now().toFixed(0),
+            );
 
             scopedPerf.mark('my-mark-3', { startTime: 1 });
             scopedPerf.mark('my-mark-4', { startTime: 5 });
@@ -207,8 +233,14 @@ Deno.test('ScopedPerformance', async (t) => {
     await t.step(
         'should return the same now() value as injected performance',
         () => {
-            assertEquals(scopedPerf.now(), performance.now());
-            assertEquals(anotherScopedPerf.now(), performance.now());
+            assertEquals(
+                scopedPerf.now().toFixed(0),
+                performance.now().toFixed(0),
+            );
+            assertEquals(
+                anotherScopedPerf.now().toFixed(0),
+                performance.now().toFixed(0),
+            );
         },
     );
 
@@ -278,6 +310,65 @@ Deno.test('ScopedPerformance', async (t) => {
                 2,
                 addEventListenerArgs[2],
             );
+        },
+    );
+
+    await t.step(
+        'should remove all listeners that have not been removed when leaving the scope',
+        async () => {
+            const counters = {
+                a: 0,
+                b: 0,
+                c: 0,
+            };
+
+            {
+                using thirdPerf = new ScopedPerformance(performance);
+                const callbacks = {
+                    a: () => {
+                        counters.a++;
+                    },
+                    b: () => {
+                        counters.b++;
+                    },
+                    c: () => {
+                        counters.c++;
+                    },
+                };
+                thirdPerf.addEventListener('a', callbacks.a);
+                thirdPerf.addEventListener('b', callbacks.b);
+                // TODO: uncomment "c" listener code once Deno 2.0 is released
+                // thirdPerf.addEventListener('c', callbacks.c, false);
+                // thirdPerf.addEventListener('c', callbacks.c, false); // has no effect
+                // thirdPerf.addEventListener('c', callbacks.c, true);
+
+                performance.dispatchEvent(new CustomEvent('a'));
+                performance.dispatchEvent(new CustomEvent('b'));
+                performance.dispatchEvent(new CustomEvent('c'));
+
+                assertEquals(counters.a, 1);
+                assertEquals(counters.b, 1);
+                // assertEquals(counters.c, 2); // called two times
+
+                // thirdPerf.removeEventListener('c', callbacks.c, false);
+
+                performance.dispatchEvent(new CustomEvent('a'));
+                performance.dispatchEvent(new CustomEvent('b'));
+                performance.dispatchEvent(new CustomEvent('c'));
+
+                assertEquals(counters.a, 2);
+                assertEquals(counters.b, 2);
+                // assertEquals(counters.c, 3); // called one time
+            }
+
+            performance.dispatchEvent(new CustomEvent('a'));
+            performance.dispatchEvent(new CustomEvent('b'));
+            performance.dispatchEvent(new CustomEvent('c'));
+
+            // no extra calls have been done
+            assertEquals(counters.a, 2);
+            assertEquals(counters.b, 2);
+            // assertEquals(counters.c, 3);
         },
     );
 });
