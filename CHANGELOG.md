@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [3.1.0](https://github.com/esroyo/scoped-performance/compare/v3.0.0...v3.1.0) (2024-09-24)
+
+
+### Features
+
+* support explicit resource management (using keyword) ([ef192f8](https://github.com/esroyo/scoped-performance/commit/ef192f80f42d6c1176820b2a4817477c49c27e48))
+
 ## [3.0.0](https://github.com/esroyo/scoped-performance/compare/v2.0.0...v3.0.0) (2024-03-03)
 
 
